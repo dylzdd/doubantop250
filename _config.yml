@@ -1,0 +1,10 @@
+# GitHub Pages 配置
+#
+# 四个页面都是纯静态 HTML，不需要 Jekyll 参与渲染。
+# 唯一需要排除的是 report.md：它和 report.html 是同一份内容，
+# 不排除的话 Jekyll 会再生成一个同名的 report.html，与静态文件冲突。
+
+exclude:
+  - report.md
+
+# 不设置 theme：页面样式全部写在各自的 HTML 里，不依赖主题。

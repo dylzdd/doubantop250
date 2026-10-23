@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>豆瓣图书 Top250 榜单数据分析 · 项目背景与目标</title>
+<style>
+  :root{
+    --ink:#1c2024;
+    --ink2:#4a5360;
+    --ink3:#79838f;
+    --line:#e4e6e8;
+    --soft:#f6f7f5;
+    --brand:#2f6b4f;
+    --brand-soft:#eaf1ec;
+    --bg:#fdfdfc;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"PingFang SC","Microsoft YaHei","Hiragino Sans GB",system-ui,sans-serif;
+    font-size:16px;
+    line-height:1.85;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 28px;}
+
+  /* ---------- Hero ---------- */
+  header.hero{
+    border-bottom:1px solid var(--line);
+    padding:72px 0 46px;
+    margin-bottom:56px;
+  }
+  .kicker{
+    font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--brand);font-weight:600;margin-bottom:20px;
+  }
+  h1{
+    font-family:"Songti SC","Source Han Serif SC","Noto Serif SC",serif;
+    font-size:40px;line-height:1.35;margin:0 0 18px;font-weight:700;
+    letter-spacing:.01em;
+  }
+  .sub{font-size:16px;color:var(--ink2);margin:0 0 34px;max-width:640px;}
+  .meta{
+    display:flex;flex-wrap:wrap;gap:0 44px;
+    border-top:1px solid var(--line);padding-top:22px;
+  }
+  .meta div{font-size:13.5px;color:var(--ink3);}
+  .meta b{display:block;font-size:14.5px;color:var(--ink);font-weight:600;margin-top:3px;}
+
+  /* ---------- Section ---------- */
+  section{margin-bottom:64px;}
+  h2{
+    font-family:"Songti SC","Source Han Serif SC","Noto Serif SC",serif;
+    font-size:23px;font-weight:700;margin:0 0 8px;
+    display:flex;align-items:baseline;gap:12px;
+  }
+  h2 .num{
+    font-family:Georgia,serif;font-size:14px;color:var(--brand);
+    font-weight:600;border:1px solid var(--brand);border-radius:2px;
+    padding:1px 7px;line-height:1.4;flex:none;
+  }
+  .lede{color:var(--ink2);font-size:15px;margin:0 0 26px;padding-left:2px;}
+  h3{
+    font-size:16.5px;font-weight:600;margin:30px 0 10px;
+  }
+  p{margin:0 0 15px;color:var(--ink2);font-size:15.5px;}
+  p strong{color:var(--ink);font-weight:600;}
+
+  /* ---------- Goal list ---------- */
+  ol.goals{list-style:none;padding:0;margin:0;counter-reset:g;}
+  ol.goals li{
+    counter-increment:g;position:relative;
+    padding:15px 0 15px 46px;border-bottom:1px dashed var(--line);
+    font-size:15.5px;color:var(--ink2);
+  }
+  ol.goals li:last-child{border-bottom:none;}
+  ol.goals li::before{
+    content:counter(g,decimal-leading-zero);
+    position:absolute;left:0;top:16px;
+    font-family:Georgia,serif;font-size:13px;color:var(--brand);
+    background:var(--brand-soft);border-radius:50%;
+    width:26px;height:26px;line-height:26px;text-align:center;
+    font-weight:600;
+  }
+  ol.goals li b{display:block;color:var(--ink);font-weight:600;margin-bottom:1px;}
+
+  /* ---------- Flow ---------- */
+  .flow{
+    display:grid;grid-template-columns:repeat(5,1fr);
+    gap:0;margin:8px 0 22px;
+    border:1px solid var(--line);border-radius:6px;overflow:hidden;
+  }
+  .flow .step{
+    padding:20px 14px 18px;position:relative;
+    border-right:1px solid var(--line);background:#fff;
+  }
+  .flow .step:last-child{border-right:none;}
+  .flow .step:not(:last-child)::after{
+    content:"›";position:absolute;right:-8px;top:50%;transform:translateY(-50%);
+    width:16px;height:16px;line-height:14px;text-align:center;
+    background:var(--brand);color:#fff;border-radius:50%;
+    font-size:14px;font-weight:700;z-index:2;
+  }
+  .flow .s-idx{font-family:Georgia,serif;font-size:11.5px;color:var(--brand);letter-spacing:.1em;}
+  .flow .s-name{font-size:15px;font-weight:600;color:var(--ink);margin:4px 0 6px;}
+  .flow .s-desc{font-size:12.5px;color:var(--ink3);line-height:1.7;}
+  .flow .s-out{
+    font-size:12px;color:var(--brand);margin-top:9px;
+    background:var(--brand-soft);border-radius:3px;padding:3px 7px;display:inline-block;
+    font-family:ui-monospace,SFMono-Regular,Consolas,monospace;
+  }
+
+  .note{
+    background:var(--soft);border-left:3px solid var(--brand);
+    padding:16px 20px;font-size:14.5px;color:var(--ink2);
+    border-radius:0 4px 4px 0;margin:0;
+  }
+  .note b{color:var(--ink);}
+
+  /* ---------- Table ---------- */
+  table{width:100%;border-collapse:collapse;font-size:14.5px;margin:6px 0 10px;}
+  th,td{text-align:left;padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{
+    font-size:12.5px;font-weight:600;color:var(--ink3);
+    letter-spacing:.06em;background:var(--soft);
+    border-bottom:1px solid var(--line);white-space:nowrap;
+  }
+  td:first-child{font-family:ui-monospace,Consolas,monospace;font-size:13px;color:var(--brand);white-space:nowrap;}
+  td{color:var(--ink2);}
+  tbody tr:hover{background:#fafbfa;}
+
+  /* ---------- Question cards ---------- */
+  .q{border-left:2px solid var(--line);padding:2px 0 2px 22px;margin-bottom:30px;}
+  .q:last-child{margin-bottom:0;}
+  .q h3{margin:0 0 8px;font-size:16.5px;display:flex;gap:10px;align-items:baseline;}
+  .q h3 .q-tag{
+    font-family:Georgia,serif;font-size:12px;color:#fff;background:var(--brand);
+    padding:1px 6px;border-radius:2px;flex:none;font-weight:600;line-height:1.6;
+  }
+  .q p{font-size:15px;margin:0 0 6px;}
+  .q .label{color:var(--ink3);font-size:14px;}
+  .q .label::before{content:"— ";color:var(--line);}
+
+  /* ---------- Limitations ---------- */
+  .limits{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden;}
+  .limits .item{background:#fff;padding:22px 22px 18px;}
+  .limits h4{margin:0 0 8px;font-size:15px;font-weight:600;color:var(--ink);display:flex;gap:8px;}
+  .limits h4 span{font-family:Georgia,serif;color:var(--brand);font-size:13px;font-weight:600;}
+  .limits p{font-size:14px;margin:0;line-height:1.8;color:var(--ink2);}
+
+  footer{
+    border-top:1px solid var(--line);margin-top:0;padding:26px 0 60px;
+    font-size:13px;color:var(--ink3);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+
+  @media (max-width:760px){
+    .wrap{padding:0 20px;}
+    header.hero{padding:48px 0 34px;}
+    h1{font-size:28px;}
+    .flow{grid-template-columns:1fr;}
+    .flow .step{border-right:none;border-bottom:1px solid var(--line);}
+    .flow .step:last-child{border-bottom:none;}
+    .flow .step:not(:last-child)::after{
+      content:"⌄";right:auto;left:50%;top:auto;bottom:-9px;transform:translateX(-50%);
+    }
+    .limits{grid-template-columns:1fr;}
+    .meta{gap:14px 30px;}
+    table{display:block;overflow-x:auto;white-space:nowrap;}
+  }
+</style>
+
+<style id="pagenav-style">
+/* 页面导航：独立命名空间，不覆盖各页原有规则 */
+.pagenav{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 22px;
+  margin:56px 0 0;font-size:13px;line-height:1.7;letter-spacing:.02em;color:#9a938a}
+.pagenav .lab{margin-right:-8px;color:#b6b0a8}
+.pagenav a{color:#2f6b4f;text-decoration:none;padding-bottom:2px;
+  border-bottom:1px solid #cdded4}
+.pagenav a:hover{color:#224d39;border-bottom-color:#2f6b4f}
+.pagenav .cur{color:#23282d;padding-bottom:2px;border-bottom:1px solid #9aa0a6}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="kicker">Portfolio Project · 数据分析</div>
+    <h1>豆瓣图书 Top250 榜单数据分析</h1>
+    <p class="sub">
+      以一份被广泛引用的「经典书单」为观察对象，用最基础的统计与可视化方法，
+      还原 250 本书背后的结构特征：它们有多老、有多热、由谁出版，以及排名是否真的等于口碑。
+    </p>
+    <div class="meta">
+      <div>项目类型<b>描述性数据分析</b></div>
+      <div>数据规模<b>250 条 · 10 个字段</b></div>
+      <div>技术路线<b>Python / pandas / Matplotlib</b></div>
+      <div>分析深度<b>常规统计，无建模</b></div>
+    </div>
+  </header>
+
+  <!-- 1 背景与目标 -->
+  <section>
+    <h2><span class="num">01</span>项目背景与目标</h2>
+    <p class="lede">先讲清楚"为什么要做"，再说明"做完要得到什么"。</p>
+
+    <h3>项目背景</h3>
+    <p>
+      豆瓣图书 Top250 是中文互联网上流传最广的经典书单之一，长期被读者当作选书参考。
+      它的排序并非单纯的销量排行，而是综合用户评分、评价人数、收藏与评论等多重信号的长期沉淀，
+      因此常被默认等同于「好书的标准答案」。
+    </p>
+    <p>
+      但榜单只给出一个排名，不解释排名背后的构成：为什么有些书评分很高却排在中段？哪些出版社常年霸榜？
+      榜单里的书究竟有多「老」？这些问题榜单本身没有回答，而它们恰好可以用最基础的数据分析方法还原出来。
+      本项目即以该榜单为唯一观察对象，完整走通一次数据分析流程。
+    </p>
+
+    <h3>项目目标</h3>
+    <ol class="goals">
+      <li><b>描述目标</b>完整刻画榜单整体结构：评分分布、热度分布、出版年份跨度、价格区间、出版社集中度。</li>
+      <li><b>关联目标</b>观察排名、评分、评价人数、价格、出版年份之间是否存在明显的同向或反向关系，仅做分组对比与相关性描述。</li>
+      <li><b>结论目标</b>形成 3–5 条有数据支撑、经得起追问的结论，并转化为对普通读者的选书建议。</li>
+      <li><b>工程目标</b>完成「采集 → 清洗 → EDA → 可视化 → 结论」完整链路，全部步骤以脚本留档，保证可复现。</li>
+    </ol>
+    <div class="note">
+      <b>定位说明：</b>本项目是描述性分析，目的在于「把一份熟悉的榜单讲清楚」，而非追求复杂模型或预测能力。
+      因此刻意不使用聚类、回归等算法，把精力放在数据质量与结论的可靠性上。
+    </div>
+  </section>
+
+  <!-- 2 流程架构 -->
+  <section>
+    <h2><span class="num">02</span>项目简易流程架构</h2>
+    <p class="lede">五个阶段串成一条线，每个阶段都有明确的交付物，前一阶段的产出是后一阶段的输入。</p>
+
+    <div class="flow">
+      <div class="step">
+        <div class="s-idx">STEP 01</div>
+        <div class="s-name">数据采集</div>
+        <div class="s-desc">抓取 10 个分页共 250 条记录，控制请求频率</div>
+        <div class="s-out">books_raw.csv</div>
+      </div>
+      <div class="step">
+        <div class="s-idx">STEP 02</div>
+        <div class="s-name">数据清洗</div>
+        <div class="s-desc">去重、缺失处理、文本转数值、日期拆解、字段标准化</div>
+        <div class="s-out">books_clean.csv</div>
+      </div>
+      <div class="step">
+        <div class="s-idx">STEP 03</div>
+        <div class="s-name">EDA 分析</div>
+        <div class="s-desc">分布统计、分组对比、集中度计算、相关性观察</div>
+        <div class="s-out">统计结果表</div>
+      </div>
+      <div class="step">
+        <div class="s-idx">STEP 04</div>
+        <div class="s-name">可视化</div>
+        <div class="s-desc">直方图、箱线图、散点图、趋势图、综合看板</div>
+        <div class="s-out">图表集</div>
+      </div>
+      <div class="step">
+        <div class="s-idx">STEP 05</div>
+        <div class="s-name">结论输出</div>
+        <div class="s-desc">归纳发现、撰写说明、补充局限</div>
+        <div class="s-out">分析报告</div>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>两点设计考量：</b>① 清洗与分析分离，原始数据完整保留，规则单独记录，任何处理都可追溯；
+      ② 分析与可视化交替推进，每完成一组统计就同步出图，避免「先算完再画图」导致图表与问题脱节。
+    </div>
+  </section>
+
+  <!-- 3 数据源 -->
+  <section>
+    <h2><span class="num">03</span>数据源详细说明</h2>
+    <p class="lede">公开可访问的榜单页，字段齐全但偏静态，清洗阶段的主要工作集中在三个文本字段上。</p>
+
+    <table>
+      <thead>
+        <tr><th>来源项</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>来源平台</td><td>豆瓣读书 · 图书 Top250 榜单页</td></tr>
+        <tr><td>页面性质</td><td>公开榜单页，无需登录即可查看</td></tr>
+        <tr><td>数据规模</td><td>10 个分页 × 25 条 = 250 条记录</td></tr>
+        <tr><td>采集方式</td><td>Python requests 请求页面 + BeautifulSoup 解析 HTML 结构化字段</td></tr>
+        <tr><td>采集约束</td><td>请求间隔 2–3 秒；仅抓取公开展示的书籍信息，不采集用户评论与个人数据</td></tr>
+        <tr><td>快照说明</td><td>记录具体采集日期；榜单动态更新，结论对应某一时点快照</td></tr>
+      </tbody>
+    </table>
+
+    <h3>字段清单（10 个）</h3>
+    <table>
+      <thead>
+        <tr><th>字段名</th><th>含义</th><th>原始类型</th><th>清洗要点</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>rank</td><td>榜单排名 1–250</td><td>整数</td><td>直接使用，作为唯一标识之一</td></tr>
+        <tr><td>book_name</td><td>书名</td><td>文本</td><td>去除副标题噪声，统一全半角</td></tr>
+        <tr><td>author</td><td>作者信息</td><td>文本（混杂）</td><td>拆分作者、译者、国籍标注</td></tr>
+        <tr><td>publisher</td><td>出版社</td><td>文本</td><td>统一「出版社 / 出版公司」等后缀写法</td></tr>
+        <tr><td>publish_date</td><td>出版日期</td><td>文本（格式不一）</td><td>拆分为年份与月份，统一为数值</td></tr>
+        <tr><td>price</td><td>定价</td><td>文本（含「元」）</td><td>去单位转浮点数</td></tr>
+        <tr><td>rating</td><td>豆瓣评分</td><td>浮点数</td><td>直接使用，范围 0–10</td></tr>
+        <tr><td>rating_count</td><td>评价人数</td><td>文本（含「人评价」）</td><td>去后缀转整数</td></tr>
+        <tr><td>quote</td><td>一句话简介 / 短评</td><td>文本</td><td>仅作辅助参考，不参与数值分析</td></tr>
+        <tr><td>url</td><td>详情页链接</td><td>文本</td><td>用于溯源核对</td></tr>
+      </tbody>
+    </table>
+
+    <h3>已知数据问题</h3>
+    <p>
+      <strong>字段偏静态：</strong>只有评分均值与累计评价人数，缺少销量、评分分布、读者画像与评价时间序列，
+      这决定了本项目只能做横截面描述。<br>
+      <strong>版本重复：</strong>经典著作常有不同译本、不同出版社同时上榜，需按「书名 + 作者」判断是否为同一作品，
+      并明确保留策略（保留排名最高版本）。<br>
+      <strong>文本不规整：</strong>出版日期存在「2005-1-1」「2010年5月」等多种写法，价格带单位，评价人数带中文后缀，
+      这三项是清洗阶段的主要工作量。<br>
+      <strong>价格不代表市场价：</strong>榜单价格反映的是该在榜版本的定价，不能视作该书的市场均价。
+    </p>
+  </section>
+
+  <!-- 4 分析问题 -->
+  <section>
+    <h2><span class="num">04</span>本次项目要解决的分析问题</h2>
+    <p class="lede">五个问题由简到难递进，共同指向一个主线：这份榜单的结构是什么样的。</p>
+
+    <div class="q">
+      <h3><span class="q-tag">Q1</span>排名靠前的书，评分一定更高吗？</h3>
+      <p><span class="label">分析思路：</span>将排名分五段（1–50、51–100 … 201–250），对比各段评分均值与区间，再画排名—评分散点图观察形态。</p>
+      <p><span class="label">关注点：</span>若二者并非严格同向，说明评价人数等指标在起实际作用，这本身就是一个值得说明的发现。</p>
+    </div>
+
+    <div class="q">
+      <h3><span class="q-tag">Q2</span>高分书是否也高热度？口碑与热度是否一致？</h3>
+      <p><span class="label">分析思路：</span>以评分中位数、评价人数中位数为界，把 250 本书划入四个象限，统计各象限数量并举例。</p>
+      <p><span class="label">关注点：</span>识别「小众高分」与「大众经典」两类书的数量比例与特征差异。</p>
+    </div>
+
+    <div class="q">
+      <h3><span class="q-tag">Q3</span>榜单里的书有多「老」？出版年份如何分布？</h3>
+      <p><span class="label">分析思路：</span>统计出版年份分布与各年代占比，观察峰值年份，对比「2000 年前出版」与「近十年出版」的比例。</p>
+      <p><span class="label">关注点：</span>判断榜单是否存在时间偏向，以及新书进入榜单的难度。</p>
+    </div>
+
+    <div class="q">
+      <h3><span class="q-tag">Q4</span>哪些出版社在「霸榜」？集中度有多高？</h3>
+      <p><span class="label">分析思路：</span>统计各出版社入榜数量并排序，计算 Top10 出版社的入榜占比（CR10），结合出版社类型观察差异。</p>
+      <p><span class="label">关注点：</span>集中度高低可反映榜单是「少数机构主导」还是「广泛分布」。</p>
+    </div>
+
+    <div class="q">
+      <h3><span class="q-tag">Q5</span>价格与口碑有关系吗？贵的书更容易得高分吗？</h3>
+      <p><span class="label">分析思路：</span>按价格区间分组，对比评分均值与评价人数均值，画价格—评分散点图观察趋势。</p>
+      <p><span class="label">关注点：</span>预期二者关系微弱。若确实无显著关系，这一「排除性发现」本身就是有价值的结论。</p>
+    </div>
+  </section>
+
+  <!-- 5 局限性 -->
+  <section>
+    <h2><span class="num">05</span>项目局限性说明</h2>
+    <p class="lede">主动写清边界，比夸大结论更能说明分析者的判断力。</p>
+
+    <div class="limits">
+      <div class="item">
+        <h4><span>01</span>数据范围局限</h4>
+        <p>样本仅 250 条，且是平台筛选后的结果，并非随机抽样。所有结论只描述「这份榜单内部的结构」，不能外推为所有好书或整个图书市场的规律。</p>
+      </div>
+      <div class="item">
+        <h4><span>02</span>指标维度局限</h4>
+        <p>缺少销量、评分分布、读者年龄与地域、评价时间序列，无法分析「口碑随时间的变化」「不同人群的偏好差异」，也无法做用户分群。</p>
+      </div>
+      <div class="item">
+        <h4><span>03</span>榜单机制不可解释</h4>
+        <p>排序规则未公开，是算法与编辑共同作用的结果。可描述表面关系，但不能断言排名形成机制，也不能把相关性解读为因果。</p>
+      </div>
+      <div class="item">
+        <h4><span>04</span>清洗规则带主观性</h4>
+        <p>版本重复、日期格式混杂需人为设定规则（如同书保留排名最高版本）。规则不同，结果随之变化，因此每条判断都需在报告中显式说明。</p>
+      </div>
+      <div class="item">
+        <h4><span>05</span>方法深度局限</h4>
+        <p>仅使用描述性统计与基础可视化，未做假设检验与建模，因此不提供统计显著性结论，也无法给出预测。这是项目定位所致。</p>
+      </div>
+      <div class="item">
+        <h4><span>06</span>时效局限</h4>
+        <p>榜单持续更新，本项目结论对应某一时点的数据快照。时间推移后排名与评价人数均会变化，结论需重新采集数据验证。</p>
+      </div>
+    </div>
+  </section>
+
+  <nav class="pagenav">
+  <span class="lab">相关内容</span>
+  <a href="index.html">作品集首页</a>
+  <span class="cur">项目背景与目标</span>
+  <a href="dashboard.html">六图可视化看板</a>
+  <a href="report.html">完整分析报告</a>
+</nav>
+
+<footer>
+    <span>豆瓣图书 Top250 榜单数据分析 · 项目背景与目标</span>
+    <span>数据快照日期：2026-10-23</span>
+  </footer>
+
+</div>
+</body>
+</html>
